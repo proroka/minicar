@@ -50,15 +50,15 @@ class Motor(object):
     v = min(v, 1., max(v, -1.))  # Values between -1 and 1.
     if v < 0.:
       # Rescale between .2 and 1.
-      v = (v - _DEADZONE) / (1. - _DEADZONE)
+      v = (v + _DEADZONE) / (1. - _DEADZONE)
       io.output(self._in1_pin, True)
       io.output(self._in2_pin, False)
     else:
-      v = (v + _DEADZONE) / (1. - _DEADZONE)
+      v = (v - _DEADZONE) / (1. - _DEADZONE)
       io.output(self._in1_pin, False)
       io.output(self._in2_pin, True)
-    print(v)
     speed = int(100. * abs(v))
+    v = min(v, 100.)  # Values between -1 and 1.
     self._pwm.ChangeDutyCycle(speed)
 
 
