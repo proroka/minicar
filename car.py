@@ -43,14 +43,14 @@ class Motor(object):
     self._pwm.stop()
 
   def set(self, v):
-    v = min(v, 99.99, max(v, -99.99))
+    v = min(v, 100., max(v, -100.))
     if v < 0.:
       io.output(self._in1_pin, True)
       io.output(self._in2_pin, False)
     else:
       io.output(self._in1_pin, False)
       io.output(self._in2_pin, True)
-    self._pwm.ChangeDutyCycle(int(v))
+    self._pwm.ChangeDutyCycle(abs(v))
 
 
 def run(local_ip, local_port):
