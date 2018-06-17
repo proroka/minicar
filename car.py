@@ -59,6 +59,7 @@ class Motor(object):
       io.output(self._in2_pin, True)
     speed = int(100. * abs(v))
     v = min(v, 100.)  # Values between -1 and 1.
+    print(v)
     self._pwm.ChangeDutyCycle(speed)
 
 
