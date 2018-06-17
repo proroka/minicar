@@ -10,8 +10,6 @@ import RPi.GPIO as io
 import signal
 import sys
 
-_DEADZONE = .2
-
 
 def init_gpio():
   io.setmode(io.BCM)
@@ -45,22 +43,14 @@ class Motor(object):
     self._pwm.stop()
 
   def set(self, v):
-    if abs(v) < _DEADZONE:
-      v = 0
-    v = min(v, 1., max(v, -1.))  # Values between -1 and 1.
+    v = min(v, 100., max(v, -100.))  # Values between -1 and 1.
     if v < 0.:
-      # Rescale between .2 and 1.
-      v = (v + _DEADZONE) / (1. - _DEADZONE)
       io.output(self._in1_pin, True)
       io.output(self._in2_pin, False)
     else:
-      v = (v - _DEADZONE) / (1. - _DEADZONE)
       io.output(self._in1_pin, False)
       io.output(self._in2_pin, True)
-    speed = int(100. * abs(v))
-    v = min(v, 100.)  # Values between -1 and 1.
-    print(v)
-    self._pwm.ChangeDutyCycle(speed)
+    self._pwm.ChangeDutyCycle(v)
 
 
 def run(local_ip, local_port):
@@ -81,6 +71,7 @@ def run(local_ip, local_port):
     forward, left = struct.unpack('ff', data)
     steering.set(left)
     print('L/R: {}'.format(left))
+    print('F/B: {}'.format(forward))
 
 
 if __name__ == '__main__':
