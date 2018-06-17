@@ -44,6 +44,8 @@ class PS4Controller(object):
         for i in range(self.controller.get_numhats()):
           self.hat_data[i] = (0, 0)
 
+      prev_forward = -2.
+      prev_left = -2.
       while True:
         for event in pygame.event.get():
           if event.type == pygame.JOYAXISMOTION:
@@ -56,10 +58,21 @@ class PS4Controller(object):
             self.hat_data[event.hat] = event.value
 
           # Send to remote IP.
-          forward = -self.axis_data[1] if 1 in self.axis_data else 0.
-          left = -self.axis_data[2] if 2 in self.axis_data else 0.
-          buf = bytearray(struct.pack('ff', forward, left))
-          self.socket.sendto(buf, (self.remote_ip, self.remote_port))
+          if 5 in self.axis_data and 4 in self.axis_data and 0 in self.axis_data:
+            r2 = (self.axis_data[5] + 1.) / 2.
+            l2 = -(self.axis_data[4] + 1.) / 2.
+            forward = r2 + l2
+            left = -self.axis_data[0]
+          else:
+            forward = 0.
+            left = 0.
+          if (abs(prev_forward - forward) > 0.01 or
+              abs(prev_left - left) > 0.01):
+            prev_forward = forward
+            prev_left = left
+            print(forward, left)
+            buf = bytearray(struct.pack('ff', forward, left))
+            self.socket.sendto(buf, (self.remote_ip, self.remote_port))
 
         time.sleep(0.001)
 
