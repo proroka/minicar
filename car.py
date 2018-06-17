@@ -57,7 +57,8 @@ class Motor(object):
       v = (v + _DEADZONE) / (1. - _DEADZONE)
       io.output(self._in1_pin, False)
       io.output(self._in2_pin, True)
-    speed = int(99. * abs(v))
+    print(v)
+    speed = int(100. * abs(v))
     self._pwm.ChangeDutyCycle(speed)
 
 
