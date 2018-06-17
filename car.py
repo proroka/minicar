@@ -63,6 +63,7 @@ def run(local_ip, local_port):
 
   init_gpio()
   steering = Motor(in1_pin=23, in2_pin=24, pwm_pin=25)
+  speed = Motor(in1_pin=17, in2_pin=27, pwm_pin=22)
 
   while True:
     # 2 floats.
@@ -70,6 +71,7 @@ def run(local_ip, local_port):
     data, _ = local_socket.recvfrom(4 * 2)
     forward, left = struct.unpack('ff', data)
     steering.set(left)
+    speed.set(forward)
     print('L/R: {}'.format(left))
     print('F/B: {}'.format(forward))
 
