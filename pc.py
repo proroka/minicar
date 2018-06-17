@@ -9,6 +9,10 @@ import time
 import struct
 
 
+def duty_cycle(v):
+  return v * 100.
+
+
 class PS4Controller(object):
   """Class representing the PS4 controller. Pretty straightforward functionality."""
 
@@ -66,12 +70,11 @@ class PS4Controller(object):
           else:
             forward = 0.
             left = 0.
-          if (abs(prev_forward - forward) > 0.01 or
-              abs(prev_left - left) > 0.01):
+
+          if abs(prev_forward - forward) > 0.01 or abs(prev_left - left) > 0.01:
             prev_forward = forward
             prev_left = left
-            print(forward, left)
-            buf = bytearray(struct.pack('ff', forward, left))
+            buf = bytearray(struct.pack('ff', duty_cycle(forward), duty_cycle(left)))
             self.socket.sendto(buf, (self.remote_ip, self.remote_port))
 
         time.sleep(0.001)
