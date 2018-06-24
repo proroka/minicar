@@ -43,7 +43,7 @@ class Motor(object):
     self._pwm.stop()
 
   def set(self, v):
-    v = min(v, 100., max(v, -100.))
+    v = min(v, 99., max(v, -99.))
     if v < 0.:
       io.output(self._in1_pin, True)
       io.output(self._in2_pin, False)
@@ -63,7 +63,7 @@ def run(local_ip, local_port):
 
   init_gpio()
   steering = Motor(in1_pin=23, in2_pin=24, pwm_pin=25)
-  speed = Motor(in1_pin=17, in2_pin=27, pwm_pin=22)
+  speed = Motor(in1_pin=17, in2_pin=25, pwm_pin=4)
 
   while True:
     # 2 floats.
