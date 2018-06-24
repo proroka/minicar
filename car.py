@@ -53,7 +53,7 @@ class Motor(object):
     self._pwm.ChangeDutyCycle(abs(v))
 
 
-def run(local_ip, local_port):
+def run(local_ip, local_port, fb_pins, lr_pins):
   # Intercept Ctrl+C.
   signal.signal(signal.SIGINT, signal_handler)
 
@@ -62,8 +62,8 @@ def run(local_ip, local_port):
   local_socket.bind((local_ip, local_port))
 
   init_gpio()
-  steering = Motor(in1_pin=23, in2_pin=24, pwm_pin=25)
-  speed = Motor(in1_pin=17, in2_pin=25, pwm_pin=4)
+  steering = Motor(in1_pin=lr_pins[0], in2_pin=lr_pins[1], pwm_pin=lr_pins[2])
+  speed = Motor(in1_pin=fb_pins[0], in2_pin=fb_pins[1], pwm_pin=fb_pins[2])
 
   while True:
     # 2 floats.
@@ -80,5 +80,9 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Sends forward/backward and left/right controls by UDP.')
   parser.add_argument('--local_ip', action='store', default='192.168.2.3', help='IP of minicar')
   parser.add_argument('--local_port', type=int, action='store', default=6789, help='Port of minicar')
+  parser.add_argument('--fb_pins', action='store', default='17,25,4', help='Pins for the forward/backward motion')
+  parser.add_argument('--lr_pins', action='store', default='22,23,24', help='Pins for the left/right motion')
   args = parser.parse_args()
-  run(args.local_ip, args.local_port)
+  fb_pins = tuple(int(p) for p in args.fb_pins.split(','))
+  lr_pins = tuple(int(p) for p in args.lr_pins.split(','))
+  run(args.local_ip, args.local_port, fb_pins, lr_pins)
