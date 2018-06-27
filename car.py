@@ -28,7 +28,7 @@ def signal_handler(signal, frame):
 
 class Motor(object):
 
-  def __init__(self, in1_pin, in2_pin, pwm_pin):
+  def __init__(self, in1_pin, in2_pin, pwm_pin, max_value=99.):
     self._in1_pin = in1_pin
     self._in2_pin = in2_pin
     self._pwm_pin = pwm_pin
@@ -40,6 +40,7 @@ class Motor(object):
     self._pwm = io.PWM(pwm_pin, 100)  # 100 Hz.
     self._pwm.start(0)
 
+    self._max = max_value
     self._current = 0.
     self._t = time.time()
     self._k = 2.
@@ -48,7 +49,7 @@ class Motor(object):
     self._pwm.stop()
 
   def set(self, v):
-    v = min(v, 99., max(v, -99.))
+    v = min(v, self._max, max(v, -self._max))
     # Continuous leaky integrator.
     dv = v - self._current
     dt = min(time.time() - self._t, .5)
@@ -68,6 +69,9 @@ class Motor(object):
 
 
 def run(local_ip, local_port, fb_pins, lr_pins):
+  if local_ip is None:
+    raise ValueError('Local IP address not specified.')
+
   # Intercept Ctrl+C.
   signal.signal(signal.SIGINT, signal_handler)
 
@@ -77,7 +81,8 @@ def run(local_ip, local_port, fb_pins, lr_pins):
 
   init_gpio()
   steering = Motor(in1_pin=lr_pins[0], in2_pin=lr_pins[1], pwm_pin=lr_pins[2])
-  speed = Motor(in1_pin=fb_pins[0], in2_pin=fb_pins[1], pwm_pin=fb_pins[2])
+  speed = Motor(in1_pin=fb_pins[0], in2_pin=fb_pins[1], pwm_pin=fb_pins[2],
+                max_value=60.)  # Prevent maxing out forward speed.
 
   while True:
     # 2 floats.
@@ -91,8 +96,18 @@ def run(local_ip, local_port, fb_pins, lr_pins):
 
 
 if __name__ == '__main__':
+  # Find local IP.
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  try:
+    s.connect(('192.168.2.1', 1))
+    local_ip = s.getsockname()[0]
+  except:
+    local_ip = None
+  finally:
+    s.close()
+
   parser = argparse.ArgumentParser(description='Sends forward/backward and left/right controls by UDP.')
-  parser.add_argument('--local_ip', action='store', default='192.168.2.3', help='IP of minicar')
+  parser.add_argument('--local_ip', action='store', default=local_ip, help='IP of minicar')
   parser.add_argument('--local_port', type=int, action='store', default=6789, help='Port of minicar')
   parser.add_argument('--fb_pins', action='store', default='17,25,4', help='Pins for the forward/backward motion')
   parser.add_argument('--lr_pins', action='store', default='23,22,24', help='Pins for the left/right motion')

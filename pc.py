@@ -82,7 +82,7 @@ class PS4Controller(object):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Sends forward/backward and left/right controls by UDP.')
-  parser.add_argument('--remote_ip', action='store', default='192.168.2.3', help='IP of minicar')
+  parser.add_argument('--remote_ip', action='store', default='192.168.2.200', help='IP of minicar')
   parser.add_argument('--remote_port', type=int, action='store', default=6789, help='Port of minicar')
   args = parser.parse_args()
 
