@@ -52,7 +52,9 @@ class Motor(object):
     v = min(v, self._max, max(v, -self._max))
     # Continuous leaky integrator.
     dv = v - self._current
-    dt = min(time.time() - self._t, .5)
+    t = time.time()
+    dt = min(t - self._t, .5)
+    self._t = t
     self._current += dv * (1. - math.exp(-self._k * dt))
 
     if self._current < 0.:
@@ -86,7 +88,7 @@ def run(local_ip, local_port, fb_pins, lr_pins):
                 max_value=60.)  # Prevent maxing out forward speed.
 
   forward = 0.
-  steering = 0.
+  left = 0.
   while True:
     # 2 floats.
     try:
@@ -96,8 +98,6 @@ def run(local_ip, local_port, fb_pins, lr_pins):
       pass
     steering.set(left)
     speed.set(forward)
-    print('L/R: {}'.format(left))
-    print('F/B: {}'.format(forward))
 
 
 if __name__ == '__main__':
