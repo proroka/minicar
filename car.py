@@ -78,17 +78,22 @@ def run(local_ip, local_port, fb_pins, lr_pins):
   print('Binding to UDP port...')
   local_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   local_socket.bind((local_ip, local_port))
+  local_socket.settimeout(.1)
 
   init_gpio()
   steering = Motor(in1_pin=lr_pins[0], in2_pin=lr_pins[1], pwm_pin=lr_pins[2])
   speed = Motor(in1_pin=fb_pins[0], in2_pin=fb_pins[1], pwm_pin=fb_pins[2],
                 max_value=60.)  # Prevent maxing out forward speed.
 
+  forward = 0.
+  steering = 0.
   while True:
     # 2 floats.
-    print('Waiting for data...')
-    data, _ = local_socket.recvfrom(4 * 2)
-    forward, left = struct.unpack('ff', data)
+    try:
+      data, _ = local_socket.recvfrom(4 * 2)
+      forward, left = struct.unpack('ff', data)
+    except:
+      pass
     steering.set(left)
     speed.set(forward)
     print('L/R: {}'.format(left))
