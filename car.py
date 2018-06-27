@@ -3,12 +3,13 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
+import math
+import RPi.GPIO as io
+import signal
 import socket
 import struct
-import RPi.GPIO as io
-
-import signal
 import sys
+import time
 
 
 def init_gpio():
@@ -39,17 +40,30 @@ class Motor(object):
     self._pwm = io.PWM(pwm_pin, 100)  # 100 Hz.
     self._pwm.start(0)
 
+    self._current = 0.
+    self._t = time.time()
+    self._k = 2.
+
   def __del__(self):
     self._pwm.stop()
 
   def set(self, v):
     v = min(v, 99., max(v, -99.))
-    if v < 0.:
+    # Continuous leaky integrator.
+    dv = v - self._current
+    dt = min(time.time() - self._t, .5)
+    self._current += dv * (1. - math.exp(-self._k * dt))
+
+    if self._current < 0.:
       io.output(self._in1_pin, True)
       io.output(self._in2_pin, False)
     else:
       io.output(self._in1_pin, False)
       io.output(self._in2_pin, True)
+
+    v = self._current
+    if abs(v) < 10.:
+      v = 0.  # Turn off completly if possible.
     self._pwm.ChangeDutyCycle(abs(v))
 
 
@@ -81,7 +95,7 @@ if __name__ == '__main__':
   parser.add_argument('--local_ip', action='store', default='192.168.2.3', help='IP of minicar')
   parser.add_argument('--local_port', type=int, action='store', default=6789, help='Port of minicar')
   parser.add_argument('--fb_pins', action='store', default='17,25,4', help='Pins for the forward/backward motion')
-  parser.add_argument('--lr_pins', action='store', default='22,23,24', help='Pins for the left/right motion')
+  parser.add_argument('--lr_pins', action='store', default='23,22,24', help='Pins for the left/right motion')
   args = parser.parse_args()
   fb_pins = tuple(int(p) for p in args.fb_pins.split(','))
   lr_pins = tuple(int(p) for p in args.lr_pins.split(','))
