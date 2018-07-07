@@ -43,7 +43,7 @@ class Motor(object):
     self._max = max_value
     self._current = 0.
     self._t = time.time()
-    self._k = 2.
+    self._k = 4.
 
   def __del__(self):
     self._pwm.stop()
